@@ -1,0 +1,37 @@
+version: '2.1'
+
+services:
+  s3demo:
+    image: s3demo
+    build:
+      context: .
+      dockerfile: conf/dockerfile/s3demo.dockerfile
+    ports:
+      - "9090:9090"
+    networks:
+      - backend
+
+  localstack:
+    image: localstack/localstack:latest
+    networks:
+      - backend
+    ports:
+      - "4566-4597:4566-4597"
+    environment:
+      - SERVICES=s3,es
+      - DEBUG=1
+      - DATA_DIR=/tmp/localstack/data-dir/
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      
+      # Local dummy AWS credentials
+      - TEST_AWS_ACCOUNT_ID=000000000000
+      - AWS_ACCESS_KEY_ID=dummy_key
+      - AWS_SECRET_ACCESS_KEY=dummy_secret_key
+      - AWS_DEFAULT_REGION=us-east-1
+    volumes:
+      - "${TMPDIR:-/tmp/localstack}:/tmp/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
+networks:
+  backend:
+    driver: bridge
